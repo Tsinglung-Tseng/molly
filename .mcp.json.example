@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "pageindex": {
+      "type": "stdio",
+      "command": "/path/to/molly.pageindex/.venv/bin/python3",
+      "args": ["/path/to/molly.pageindex/mcp_server.py"],
+      "env": {
+        "VAULT_PATH": "/path/to/your/obsidian/vault",
+        "VAULT_NAME": "YourVaultName",
+        "LLM_API_KEY": "your-api-key-here",
+        "LLM_SERVICE_BASE_URL": "https://api.siliconflow.cn/v1",
+        "PAGEINDEX_MODEL": "Pro/MiniMaxAI/MiniMax-M2.5"
+      }
+    }
+  }
+}

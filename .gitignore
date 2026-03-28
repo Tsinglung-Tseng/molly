@@ -1,0 +1,16 @@
+/.build
+/*.app
+.DS_Store
+
+# Personal config (never commit secrets)
+config.json
+config.example.json
+config.json.example
+
+# Local docs (personal notes, not part of repo)
+docs/
+
+# Claude Code worktrees & session state
+.claude/worktrees/
+.swiftpm/
+.mcp.json
