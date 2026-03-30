@@ -19,6 +19,24 @@ struct GeneralPrefsView: View {
                 }
             }
 
+            Section("LLM") {
+                LabeledContent("API URL:") {
+                    TextField("", text: $config.llm.apiURL)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: config.llm.apiURL) { save() }
+                }
+                LabeledContent("API Key:") {
+                    SecureField("", text: $config.llm.apiKey)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: config.llm.apiKey) { save() }
+                }
+                LabeledContent("Model:") {
+                    TextField("", text: $config.llm.model)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: config.llm.model) { save() }
+                }
+            }
+
             Section("Config File") {
                 LabeledContent("config.json:") {
                     HStack {
@@ -66,9 +84,11 @@ struct GeneralPrefsView: View {
 
     private func save() {
         let vaultPath = config.vaultPath
+        let llm = config.llm
         Task {
             try? await ConfigStore.shared.update { cfg in
                 cfg.vaultPath = vaultPath
+                cfg.llm = llm
             }
         }
     }
