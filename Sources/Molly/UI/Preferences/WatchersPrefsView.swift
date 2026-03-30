@@ -272,7 +272,7 @@ struct WatcherEditView: View {
                         TextField("", text: $label)
                             .textFieldStyle(.roundedBorder)
                     }
-                    LabeledContent("Watch path:") {
+                    LabeledContent("Watcher path:") {
                         TextField("", text: $watchPath)
                             .textFieldStyle(.roundedBorder)
                     }
