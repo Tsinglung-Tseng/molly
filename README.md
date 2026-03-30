@@ -10,7 +10,16 @@ Molly 管理一组 **watchers**（监视器）—— 在后台监控你的知识
 - Swift 6.0+ 工具链
 - 一个 Obsidian 知识库
 
-## 构建
+## 安装
+
+### Homebrew（推荐）
+
+```bash
+brew tap Tsinglung-Tseng/tap
+brew install --cask molly
+```
+
+### 手动构建
 
 ```bash
 swift build            # 调试构建
@@ -56,4 +65,4 @@ cp .mcp.json.example .mcp.json
 
 ## 许可证
 
-私有 / 保留所有权利。
+[MIT](LICENSE)
