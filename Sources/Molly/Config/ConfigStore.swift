@@ -52,7 +52,6 @@ actor ConfigStore {
                     watchPath: cfg.clips.clippingsSubdir,
                     recursive: false,
                     debounceSec: cfg.clips.debounceSec,
-                    action: .claudeSkill("/obs-note"),
                     builtinPreset: .clips
                 ),
                 at: 0
@@ -68,7 +67,6 @@ actor ConfigStore {
                     watchPath: "",
                     recursive: false,
                     debounceSec: cfg.ner.debounceSec,
-                    action: .llmPrompt("Extract named entities from: $CONTENT"),
                     builtinPreset: .ner
                 )
             )
@@ -83,7 +81,6 @@ actor ConfigStore {
                     watchPath: "",
                     recursive: true,
                     debounceSec: 3.0,
-                    action: .llmPrompt("Index this note"),
                     builtinPreset: .pageindex
                 )
             )

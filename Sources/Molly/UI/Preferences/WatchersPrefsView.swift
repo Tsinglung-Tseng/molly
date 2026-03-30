@@ -35,7 +35,7 @@ struct WatchersPrefsView: View {
                                 .foregroundStyle(.tertiary)
                             Text("No watchers")
                                 .foregroundStyle(.secondary)
-                            Text("Add a watcher to run shell commands, Claude skills, or LLM prompts when files change.")
+                            Text("Add a watcher to run daemon processes when files change.")
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                                 .multilineTextAlignment(.center)
@@ -209,15 +209,11 @@ private struct WatcherRowView: View {
 
     private var actionSummary: String {
         let path = watcher.watchPath.isEmpty ? "vault root" : watcher.watchPath
-        switch watcher.action {
-        case .shellCommand(let cmd):
-            let preview = cmd.count > 40 ? String(cmd.prefix(40)) + "…" : cmd
-            return "Watch \(path) → \(preview)"
-        case .claudeSkill(let s):
-            return "Watch \(path) → claude \(s)"
-        case .llmPrompt:
-            return "Watch \(path) → LLM prompt"
+        if watcher.startCmd.isEmpty {
+            return "Watch \(path)"
         }
+        let preview = watcher.startCmd.count > 40 ? String(watcher.startCmd.prefix(40)) + "…" : watcher.startCmd
+        return "Watch \(path) → \(preview)"
     }
 }
 
@@ -234,19 +230,8 @@ struct WatcherEditView: View {
     @State private var recursive: Bool
     @State private var debounceSec: Double
     @State private var fileFilter: String
-    @State private var actionType: EditActionType
-    @State private var actionValue: String
-
-    enum EditActionType: String, CaseIterable {
-        case shellCommand = "Shell Command"
-        case claudeSkill  = "Claude Skill"
-        case llmPrompt    = "LLM Prompt"
-    }
-
     @State private var startCmd: String
     @State private var startCwd: String
-
-    private var isDaemon: Bool { !startCmd.isEmpty }
 
     init(existing: WatcherDefinition?, onSave: @escaping (WatcherDefinition) -> Void) {
         self.existing = existing
@@ -255,8 +240,7 @@ struct WatcherEditView: View {
         let w = existing ?? WatcherDefinition(
             id: UUID().uuidString,
             label: "",
-            watchPath: "",
-            action: .shellCommand("")
+            watchPath: ""
         )
         _label       = State(initialValue: w.label)
         _watchPath   = State(initialValue: w.watchPath)
@@ -265,12 +249,6 @@ struct WatcherEditView: View {
         _fileFilter  = State(initialValue: w.fileFilter)
         _startCmd    = State(initialValue: w.startCmd)
         _startCwd    = State(initialValue: w.startCwd)
-
-        switch w.action {
-        case .shellCommand(let v): _actionType = State(initialValue: .shellCommand); _actionValue = State(initialValue: v)
-        case .claudeSkill(let v):  _actionType = State(initialValue: .claudeSkill);  _actionValue = State(initialValue: v)
-        case .llmPrompt(let v):    _actionType = State(initialValue: .llmPrompt);    _actionValue = State(initialValue: v)
-        }
     }
 
     var body: some View {
@@ -322,48 +300,13 @@ struct WatcherEditView: View {
                             .font(.system(.body, design: .monospaced))
                     }
                 }
-
-                Section {
-                    Picker("Type:", selection: $actionType) {
-                        ForEach(EditActionType.allCases, id: \.self) { t in
-                            Text(t.rawValue).tag(t)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-
-                    LabeledContent(actionLabel + ":") {
-                        TextField("", text: $actionValue, axis: .vertical)
-                            .textFieldStyle(.roundedBorder)
-                            .lineLimit(3, reservesSpace: true)
-                    }
-
-                    Text("Placeholders: **$FILE** — full path  ·  **$FILENAME** — file name  ·  **$CONTENT** — file text")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } header: {
-                    Text("Action")
-                }
             }
             .formStyle(.grouped)
         }
         .frame(width: 500, height: 560)
     }
 
-    private var actionLabel: String {
-        switch actionType {
-        case .shellCommand: return "Command"
-        case .claudeSkill:  return "Skill"
-        case .llmPrompt:    return "Prompt"
-        }
-    }
-
     private func commit() {
-        let action: WatcherAction
-        switch actionType {
-        case .shellCommand: action = .shellCommand(actionValue)
-        case .claudeSkill:  action = .claudeSkill(actionValue)
-        case .llmPrompt:    action = .llmPrompt(actionValue)
-        }
         let def = WatcherDefinition(
             id: existing?.id ?? UUID().uuidString,
             label: label.trimmingCharacters(in: .whitespaces),
@@ -372,7 +315,6 @@ struct WatcherEditView: View {
             recursive: recursive,
             debounceSec: max(0.5, debounceSec),
             fileFilter: fileFilter.isEmpty ? "*.md" : fileFilter,
-            action: action,
             builtinPreset: existing?.builtinPreset,
             startCmd: startCmd,
             startCwd: startCwd,

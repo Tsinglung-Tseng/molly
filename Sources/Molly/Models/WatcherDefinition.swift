@@ -14,7 +14,6 @@ struct WatcherDefinition: Codable, Sendable, Equatable, Identifiable {
     var recursive: Bool
     var debounceSec: Double
     var fileFilter: String
-    var action: WatcherAction
     var builtinPreset: BuiltinPreset?
     var startCmd: String
     var startCwd: String
@@ -28,7 +27,6 @@ struct WatcherDefinition: Codable, Sendable, Equatable, Identifiable {
         recursive: Bool = false,
         debounceSec: Double = 3.0,
         fileFilter: String = "*.md",
-        action: WatcherAction = .shellCommand(""),
         builtinPreset: BuiltinPreset? = nil,
         startCmd: String = "",
         startCwd: String = "",
@@ -41,7 +39,6 @@ struct WatcherDefinition: Codable, Sendable, Equatable, Identifiable {
         self.recursive = recursive
         self.debounceSec = debounceSec
         self.fileFilter = fileFilter
-        self.action = action
         self.builtinPreset = builtinPreset
         self.startCmd = startCmd
         self.startCwd = startCwd
@@ -57,50 +54,10 @@ struct WatcherDefinition: Codable, Sendable, Equatable, Identifiable {
         recursive = try c.decodeIfPresent(Bool.self, forKey: .recursive) ?? false
         debounceSec = try c.decodeIfPresent(Double.self, forKey: .debounceSec) ?? 3.0
         fileFilter = try c.decodeIfPresent(String.self, forKey: .fileFilter) ?? "*.md"
-        action = try c.decodeIfPresent(WatcherAction.self, forKey: .action) ?? .shellCommand("")
         builtinPreset = try c.decodeIfPresent(BuiltinPreset.self, forKey: .builtinPreset)
         startCmd = try c.decodeIfPresent(String.self, forKey: .startCmd) ?? ""
         startCwd = try c.decodeIfPresent(String.self, forKey: .startCwd) ?? ""
         startEnv = try c.decodeIfPresent([String: String].self, forKey: .startEnv) ?? [:]
-    }
-}
-
-// MARK: - WatcherAction
-
-enum WatcherAction: Codable, Sendable, Equatable {
-    case shellCommand(String)
-    case claudeSkill(String)
-    case llmPrompt(String)
-
-    private enum CodingKeys: String, CodingKey {
-        case type, value
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try c.decode(String.self, forKey: .type)
-        let value = try c.decode(String.self, forKey: .value)
-        switch type {
-        case "shellCommand": self = .shellCommand(value)
-        case "claudeSkill":  self = .claudeSkill(value)
-        case "llmPrompt":    self = .llmPrompt(value)
-        default:             self = .shellCommand(value)
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        switch self {
-        case .shellCommand(let v):
-            try c.encode("shellCommand", forKey: .type)
-            try c.encode(v, forKey: .value)
-        case .claudeSkill(let v):
-            try c.encode("claudeSkill", forKey: .type)
-            try c.encode(v, forKey: .value)
-        case .llmPrompt(let v):
-            try c.encode("llmPrompt", forKey: .type)
-            try c.encode(v, forKey: .value)
-        }
     }
 }
 
