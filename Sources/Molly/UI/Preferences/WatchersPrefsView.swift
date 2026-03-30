@@ -208,12 +208,8 @@ private struct WatcherRowView: View {
     }
 
     private var actionSummary: String {
-        let path = watcher.watchPath.isEmpty ? "vault root" : watcher.watchPath
-        if watcher.startCmd.isEmpty {
-            return "Watch \(path)"
-        }
-        let preview = watcher.startCmd.count > 40 ? String(watcher.startCmd.prefix(40)) + "…" : watcher.startCmd
-        return "Watch \(path) → \(preview)"
+        watcher.startCmd.isEmpty ? "No command" :
+            watcher.startCmd.count > 40 ? String(watcher.startCmd.prefix(40)) + "…" : watcher.startCmd
     }
 }
 
@@ -226,10 +222,6 @@ struct WatcherEditView: View {
     let onSave: (WatcherDefinition) -> Void
 
     @State private var label: String
-    @State private var watchPath: String
-    @State private var recursive: Bool
-    @State private var debounceSec: Double
-    @State private var fileFilter: String
     @State private var startCmd: String
     @State private var startCwd: String
 
@@ -242,13 +234,9 @@ struct WatcherEditView: View {
             label: "",
             watchPath: ""
         )
-        _label       = State(initialValue: w.label)
-        _watchPath   = State(initialValue: w.watchPath)
-        _recursive   = State(initialValue: w.recursive)
-        _debounceSec = State(initialValue: w.debounceSec)
-        _fileFilter  = State(initialValue: w.fileFilter)
-        _startCmd    = State(initialValue: w.startCmd)
-        _startCwd    = State(initialValue: w.startCwd)
+        _label    = State(initialValue: w.label)
+        _startCmd = State(initialValue: w.startCmd)
+        _startCwd = State(initialValue: w.startCwd)
     }
 
     var body: some View {
@@ -270,20 +258,6 @@ struct WatcherEditView: View {
                 Section("General") {
                     LabeledContent("Name:") {
                         TextField("", text: $label)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    LabeledContent("Watcher path:") {
-                        TextField("", text: $watchPath)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    Toggle("Include subdirectories", isOn: $recursive)
-                    LabeledContent("Debounce (sec):") {
-                        TextField("", value: $debounceSec, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 72)
-                    }
-                    LabeledContent("File filter:") {
-                        TextField("", text: $fileFilter)
                             .textFieldStyle(.roundedBorder)
                     }
                 }
@@ -311,10 +285,7 @@ struct WatcherEditView: View {
             id: existing?.id ?? UUID().uuidString,
             label: label.trimmingCharacters(in: .whitespaces),
             enabled: existing?.enabled ?? false,
-            watchPath: watchPath,
-            recursive: recursive,
-            debounceSec: max(0.5, debounceSec),
-            fileFilter: fileFilter.isEmpty ? "*.md" : fileFilter,
+            watchPath: existing?.watchPath ?? "",
             builtinPreset: existing?.builtinPreset,
             startCmd: startCmd,
             startCwd: startCwd,
