@@ -17,6 +17,14 @@ struct GeneralPrefsView: View {
                         Button("Choose…") { chooseVaultPath() }
                     }
                 }
+                LabeledContent("Claude Binary:") {
+                    HStack {
+                        TextField("/path/to/claude", text: $config.claudeBin)
+                            .textFieldStyle(.roundedBorder)
+                            .onChange(of: config.claudeBin) { save() }
+                        Button("Detect") { detectClaudeBin() }
+                    }
+                }
             }
 
             Section("LLM") {
@@ -88,12 +96,30 @@ struct GeneralPrefsView: View {
         }
     }
 
+    private func detectClaudeBin() {
+        let p = Process()
+        p.executableURL = URL(filePath: "/bin/zsh")
+        p.arguments = ["-l", "-c", "which claude"]
+        let pipe = Pipe()
+        p.standardOutput = pipe
+        try? p.run()
+        p.waitUntilExit()
+        let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !output.isEmpty {
+            config.claudeBin = output
+            save()
+        }
+    }
+
     private func save() {
         let vaultPath = config.vaultPath
+        let claudeBin = config.claudeBin
         let llm = config.llm
         Task {
             try? await ConfigStore.shared.update { cfg in
                 cfg.vaultPath = vaultPath
+                cfg.claudeBin = claudeBin
                 cfg.llm = llm
             }
         }
