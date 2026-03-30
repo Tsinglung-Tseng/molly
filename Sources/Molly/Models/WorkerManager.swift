@@ -331,9 +331,6 @@ final class WorkerManager: ObservableObject {
         var mollyEnv: [String: String] = [
             "MOLLY_VAULT_PATH": config.vaultPath,
             "MOLLY_CLAUDE_BIN": config.claudeBin,
-            "MOLLY_LLM_API_URL": config.llm.apiURL,
-            "MOLLY_LLM_API_KEY": config.llm.apiKey,
-            "MOLLY_LLM_MODEL": config.llm.model,
         ]
         // PageIndex specific
         if watcher.builtinPreset == .pageindex {

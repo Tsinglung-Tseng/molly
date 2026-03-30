@@ -17,76 +17,10 @@ actor ConfigStore {
 
         if let data = try? Data(contentsOf: fileURL),
            let loaded = try? JSONDecoder().decode(AppConfig.self, from: data) {
-            config = ConfigStore.migrate(loaded)
+            config = loaded
         } else {
             config = AppConfig()
         }
-    }
-
-    // MARK: - Migration
-    static func migrate(_ old: AppConfig) -> AppConfig {
-        var cfg = old
-        if cfg.configVersion < 2 {
-            cfg = migrateV1toV2(cfg)
-        }
-        return cfg
-    }
-
-    private static func migrateV1toV2(_ cfg: AppConfig) -> AppConfig {
-        var updated = cfg
-        updated.configVersion = 2
-
-        // 提升 claudeBin
-        if updated.claudeBin.isEmpty && !cfg.clips.claudeBin.isEmpty {
-            updated.claudeBin = cfg.clips.claudeBin
-        }
-
-        let existingIDs = Set(cfg.watchers.map(\.id))
-
-        if !existingIDs.contains("builtin.clips") {
-            updated.watchers.insert(
-                WatcherDefinition(
-                    id: "builtin.clips",
-                    label: "Clip Processor",
-                    enabled: cfg.clips.enabled,
-                    watchPath: cfg.clips.clippingsSubdir,
-                    recursive: false,
-                    debounceSec: cfg.clips.debounceSec,
-                    builtinPreset: .clips
-                ),
-                at: 0
-            )
-        }
-
-        if !existingIDs.contains("builtin.ner") {
-            updated.watchers.append(
-                WatcherDefinition(
-                    id: "builtin.ner",
-                    label: "NER Tagger",
-                    enabled: cfg.ner.enabled,
-                    watchPath: "",
-                    recursive: false,
-                    debounceSec: cfg.ner.debounceSec,
-                    builtinPreset: .ner
-                )
-            )
-        }
-
-        if !existingIDs.contains("builtin.pageindex") {
-            updated.watchers.append(
-                WatcherDefinition(
-                    id: "builtin.pageindex",
-                    label: "Note Indexer",
-                    enabled: cfg.pageindex.enabled,
-                    watchPath: "",
-                    recursive: true,
-                    debounceSec: 3.0,
-                    builtinPreset: .pageindex
-                )
-            )
-        }
-
-        return updated
     }
 
     func update(_ transform: @Sendable (inout AppConfig) -> Void) async throws {
