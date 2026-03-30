@@ -39,7 +39,7 @@ struct GeneralPrefsView: View {
 
             Section("Config File") {
                 LabeledContent("config.json:") {
-                    HStack {
+                    HStack(alignment: .center) {
                         if let url = configFileURL {
                             Text(url.path)
                                 .foregroundStyle(.secondary)
@@ -48,16 +48,22 @@ struct GeneralPrefsView: View {
                         }
                         Spacer()
                         Button("Open") {
-                            if let url = configFileURL {
+                            Task {
+                                guard let url = configFileURL else { return }
+                                if !FileManager.default.fileExists(atPath: url.path) {
+                                    try? await ConfigStore.shared.update { _ in }
+                                }
                                 NSWorkspace.shared.open(url)
                             }
                         }
+                        .buttonStyle(.bordered)
                         Button("Reload") {
                             Task {
                                 try? await ConfigStore.shared.reload()
                                 config = await ConfigStore.shared.config
                             }
                         }
+                        .buttonStyle(.bordered)
                     }
                 }
             }
