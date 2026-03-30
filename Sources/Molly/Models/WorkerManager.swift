@@ -94,7 +94,7 @@ private final class DaemonHandle: @unchecked Sendable {
         // not just a wrapper shell that leaves orphaned children.
         // For compound commands (pipes, &&, etc.) fall back to process-group kill.
         let needsShell = cmd.contains("|") || cmd.contains("&&") || cmd.contains(";")
-        p.arguments = ["-c", needsShell ? cmd : "exec \(cmd)"]
+        p.arguments = ["-l", "-c", needsShell ? cmd : "exec \(cmd)"]
         p.currentDirectoryURL = URL(filePath: cwd)
 
         // Merge environment: inherit current + MOLLY_* + watcher-specific
