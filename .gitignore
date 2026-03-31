@@ -14,3 +14,4 @@ docs/
 .claude/worktrees/
 .swiftpm/
 .mcp.json
+*.zip
